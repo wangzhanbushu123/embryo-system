@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>胚胎非整倍体及中西结合融合诊疗系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none}
+        html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#0a1628 0%,#1a365d 30%,#2c5f8e 60%,#4a90d9 100%);min-height:100vh;color:#fff;overflow-x:hidden;-webkit-text-size-adjust:100%}
+        .container{max-width:800px;margin:0 auto;padding:20px;min-height:100vh}
+        .role-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.95);border-bottom:1px solid rgba(255,255,255,0.1);padding:10px 20px;display:flex;justify-content:space-between;align-items:center}
+        .role-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:600}
+        .role-patient{background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.4)}
+        .role-doctor{background:rgba(0,198,255,0.2);color:#00c6ff;border:1px solid rgba(0,198,255,0.4)}
+        .role-switch-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 14px;border-radius:20px;font-size:0.8rem;cursor:pointer;-webkit-appearance:none}
+        .card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:25px;margin-bottom:15px}
+        .card h3{font-size:1.1rem;margin-bottom:15px;color:#a8d8ff;display:flex;align-items:center;gap:8px}
+        .card p,.card li{font-size:0.9rem;line-height:1.7;color:rgba(255,255,255,0.85)}
+        .card ul{padding-left:20px;margin-top:8px}
+        .page{display:none;min-height:100vh;animation:fadeIn 0.6s ease-out;padding-top:60px;padding-bottom:40px}
+        .page.active{display:block}
+        .role-select-page{text-align:center;padding-top:80px}
+        .main-title{font-size:1.7rem;font-weight:700;margin-bottom:15px;line-height:1.3;background:linear-gradient(90deg,#fff,#a8d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .subtitle{font-size:1rem;color:rgba(255,255,255,0.85);margin-bottom:30px;max-width:600px;margin-left:auto;margin-right:auto}
+        .role-cards{display:flex;gap:20px;width:100%;max-width:500px;margin:20px auto 0}
+        .role-card{flex:1;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);border-radius:20px;padding:35px 20px;cursor:pointer;transition:all 0.3s;text-align:center}
+        .role-card:hover{transform:translateY(-4px);border-color:rgba(0,198,255,0.5);background:rgba(255,255,255,0.12)}
+        .role-icon{font-size:3rem;margin-bottom:15px}
+        .patient-info-page{padding-top:70px}
+        .info-form{width:100%;max-width:500px;margin:0 auto}
+        .form-group{margin-bottom:18px}
+        .form-label{display:block;font-size:0.9rem;margin-bottom:8px;color:rgba(255,255,255,0.9)}
+        .form-label .required{color:#e74c3c;margin-left:4px}
+        .input-field{width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:white;font-size:1rem;-webkit-appearance:none}
+        .input-field::placeholder{color:rgba(255,255,255,0.4)}
+        .input-field:focus{border-color:#00c6ff;background:rgba(255,255,255,0.08)}
+        .radio-group{display:flex;gap:15px;flex-wrap:wrap}
+        .radio-item{flex:1;min-width:100px;padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);text-align:center;cursor:pointer;transition:all 0.25s;font-size:0.9rem}
+        .radio-item.active{border-color:#00c6ff;background:rgba(0,198,255,0.15)}
+        .btn{padding:14px 30px;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;-webkit-appearance:none;text-align:center;display:inline-block}
+        .btn-primary{background:linear-gradient(135deg,#00c6ff,#0072ff);color:white;box-shadow:0 4px 20px rgba(0,114,255,0.4)}
+        .btn-primary:hover{transform:translateY(-2px)}
+        .btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60);color:white;box-shadow:0 4px 15px rgba(46,204,113,0.4)}
+        .btn-warning{background:linear-gradient(135deg,#f1c40f,#e67e22);color:white;box-shadow:0 4px 20px rgba(241,196,15,0.4)}
+        .btn-secondary{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3)}
+        .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:white}
+        .btn-block{width:100%;display:block}
+        .btn-large{padding:16px;font-size:1.1rem;border-radius:50px}
+        .patient-welcome{text-align:center}
+        .feature-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;justify-content:center}
+        .tag{background:rgba(168,216,255,0.2);border:1px solid rgba(168,216,255,0.4);padding:5px 12px;border-radius:20px;font-size:0.8rem;color:#a8d8ff}
+        .pulse{animation:pulse 2.5s infinite}
+        .quiz-page{padding-top:50px}
+        .progress-container{position:sticky;top:50px;z-index:100;background:rgba(10,22,40,0.9);padding:12px 0;margin:0 -20px 20px -20px;padding-left:20px;padding-right:20px}
+        .progress-bar{width:100%;height:6px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#00c6ff,#0072ff);border-radius:4px;transition:width 0.4s}
+        .progress-text{text-align:center;margin-top:6px;font-size:0.8rem;color:rgba(255,255,255,0.7)}
+        .question-number{font-size:0.85rem;color:#a8d8ff;margin-bottom:8px;font-weight:500}
+        .question-text{font-size:1.1rem;font-weight:600;line-height:1.5;margin-bottom:20px}
+        .options-container{display:flex;flex-direction:column;gap:10px}
+        .option-btn{background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);color:white;padding:14px 16px;border-radius:12px;cursor:pointer;font-size:0.95rem;text-align:left;transition:all 0.25s;display:flex;align-items:center;gap:10px}
+        .option-btn:hover,.option-btn.selected{background:rgba(0,198,255,0.2);border-color:#00c6ff}
+        .option-letter{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;flex-shrink:0}
+        .option-btn.selected .option-letter{background:#00c6ff;color:#0a1628}
+        .nav-buttons{display:flex;justify-content:space-between;margin-top:15px;gap:12px;padding-bottom:20px}
+        .nav-btn{padding:12px 24px;border-radius:12px;border:none;font-size:0.95rem;font-weight:500;cursor:pointer;transition:all 0.3s}
+        .nav-btn-prev{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2)}
+        .nav-btn-next{background:linear-gradient(135deg,#00c6ff,#0072ff);color:white;flex:1}
+        .nav-btn:disabled{opacity:0.4;cursor:not-allowed}
+        .result-summary-page{text-align:center}
+        .result-header{text-align:center;padding:20px 0}
+        .result-badge{display:inline-block;padding:6px 20px;border-radius:20px;font-size:0.85rem;font-weight:600;margin-bottom:12px}
+        .badge-low{background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.4)}
+        .badge-moderate{background:rgba(241,196,15,0.2);color:#f1c40f;border:1px solid rgba(241,196,15,0.4)}
+        .badge-high{background:rgba(230,126,34,0.2);color:#e67e22;border:1px solid rgba(230,126,34,0.4)}
+        .badge-very-high{background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid rgba(231,76,60,0.4)}
+        .result-title{font-size:1.4rem;font-weight:700;margin-bottom:8px}
+        .result-subtitle{color:rgba(255,255,255,0.7);font-size:0.9rem}
+        .chart-container{height:280px;position:relative;padding:20px}
+        .lock-overlay{background:rgba(10,22,40,0.95);border:2px dashed rgba(231,76,60,0.5);border-radius:20px;padding:35px 25px;text-align:center;margin:15px 0}
+        .lock-icon{font-size:3rem;margin-bottom:15px}
+        .price-tag{font-size:2rem;font-weight:700;color:#f1c40f;margin-bottom:5px}
+        .price-note{font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:20px}
+        .preview-hint{margin-top:15px;padding:15px;background:rgba(255,255,255,0.05);border-radius:12px;font-size:0.85rem;color:rgba(255,255,255,0.6);text-align:left}
+        .action-buttons{display:flex;gap:12px;margin-top:20px;margin-bottom:30px}
+        .action-btn{flex:1;padding:14px;border-radius:12px;border:none;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.3s;text-align:center}
+        .payment-page{text-align:center}
+        .payment-box{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:30px 25px;width:100%;max-width:450px;margin:0 auto}
+        .payment-box h2{margin-bottom:10px;color:#a8d8ff}
+        .payment-amount{font-size:2.5rem;font-weight:700;color:#f1c40f;margin:15px 0}
+        .payment-info{text-align:left;margin:15px 0;padding:15px;background:rgba(255,255,255,0.05);border-radius:12px}
+        .payment-info p{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px}
+        .payment-info p strong{color:rgba(255,255,255,0.9)}
+        .config-info{background:rgba(7,193,96,0.1);border:1px solid rgba(7,193,96,0.3);border-radius:12px;padding:15px;margin:15px 0;text-align:left}
+        .config-info h4{color:#07c160;font-size:0.9rem;margin-bottom:10px}
+        .config-info p{font-size:0.8rem;color:rgba(255,255,255,0.7);margin-bottom:5px}
+        .env-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:500;margin-bottom:10px}
+        .env-wx{background:rgba(7,193,96,0.15);color:#07c160;border:1px solid rgba(7,193,96,0.3)}
+        .env-browser{background:rgba(168,216,255,0.15);color:#a8d8ff;border:1px solid rgba(168,216,255,0.3)}
+        .full-report-page{text-align:center}
+        .paid-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.4);margin-bottom:10px}
+        .audit-pending{background:rgba(241,196,15,0.2);color:#f1c40f;border:1px solid rgba(241,196,15,0.4)}
+        .detail-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}
+        .detail-bar{width:80px;height:5px;background:rgba(255,255,255,0.15);border-radius:3px;overflow:hidden;margin-left:8px}
+        .detail-bar-fill{height:100%;border-radius:3px;transition:width 0.8s}
+        .treatment-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:15px;margin-bottom:12px;text-align:left}
+        .treatment-card h4{font-size:0.95rem;margin-bottom:8px}
+        .treatment-card p,.treatment-card li{font-size:0.85rem;line-height:1.7;color:rgba(255,255,255,0.8)}
+        .treatment-card ul{padding-left:18px;margin-top:6px}
+        .highlight-box{background:rgba(0,198,255,0.1);border-left:4px solid #00c6ff;padding:12px;border-radius:0 10px 10px 0;margin:12px 0;text-align:left}
+        .highlight-box p{font-size:0.85rem;line-height:1.7}
+        .doctor-login-page{text-align:center;padding-top:80px}
+        .login-box{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:40px 30px;width:100%;max-width:400px;margin:0 auto}
+        .login-hint{margin-top:15px;font-size:0.8rem;color:rgba(255,255,255,0.5)}
+        .doctor-dashboard{padding-top:60px}
+        .dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+        .stat-card{flex:1;min-width:70px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:15px;text-align:center}
+        .stat-number{font-size:1.5rem;font-weight:700;color:#00c6ff}
+        .stat-label{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:4px}
+        .patient-list{display:flex;flex-direction:column;gap:12px}
+        .patient-item{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.3s;display:flex;justify-content:space-between;align-items:center}
+        .patient-item:hover{background:rgba(255,255,255,0.12)}
+        .patient-risk{padding:4px 12px;border-radius:12px;font-size:0.8rem;font-weight:600}
+        .risk-low{background:rgba(46,204,113,0.2);color:#2ecc71}
+        .risk-moderate{background:rgba(241,196,15,0.2);color:#f1c40f}
+        .risk-high{background:rgba(230,126,34,0.2);color:#e67e22}
+        .risk-very-high{background:rgba(231,76,60,0.2);color:#e74c3c}
+        .pay-status{font-size:0.75rem;padding:2px 8px;border-radius:8px;margin-left:6px}
+        .paid{background:rgba(46,204,113,0.3);color:#2ecc71}
+        .unpaid{background:rgba(231,76,60,0.3);color:#e74c3c}
+        .audit-panel{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:25px;margin-bottom:20px}
+        .audit-textarea{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:white;font-size:0.9rem;min-height:80px;resize:vertical;-webkit-appearance:none;margin-bottom:15px}
+        .audit-actions{display:flex;gap:12px;flex-wrap:wrap}
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+        .modal-overlay.active{display:flex}
+        .modal-box{background:linear-gradient(135deg,#1a365d,#0a1628);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:30px;max-width:450px;width:100%;text-align:center}
+        .modal-box h3{font-size:1.2rem;margin-bottom:15px}
+        .modal-box p{font-size:0.9rem;color:rgba(255,255,255,0.8);margin-bottom:20px;line-height:1.6;white-space:pre-line}
+        .pay-success-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:4000;display:none;align-items:center;justify-content:center;flex-direction:column}
+        .pay-success-overlay.active{display:flex}
+        .pay-success-icon{font-size:4rem;margin-bottom:15px}
+        .qrcode-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px}
+        .qrcode-overlay.active{display:flex}
+        .qrcode-box{background:linear-gradient(135deg,#1a365d,#0a1628);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:30px;max-width:400px;width:100%;text-align:center}
+        .qrcode-box h3{font-size:1.2rem;margin-bottom:10px;color:#a8d8ff}
+        .qrcode-box p{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:15px}
+        .qrcode-image{width:200px;height:200px;background:white;border-radius:10px;margin:0 auto 15px;padding:10px}
+        .qrcode-image img{width:100%;height:100%;object-fit:contain}
+        .qrcode-tips{background:rgba(7,193,96,0.1);border:1px solid rgba(7,193,96,0.3);border-radius:10px;padding:12px;margin-bottom:15px;font-size:0.85rem;color:rgba(255,255,255,0.8);text-align:left}
+        .qrcode-status{font-size:0.9rem;color:#f1c40f;margin-bottom:15px}
+        .qrcode-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#f1c40f;border-radius:50%;animation:spin 1s linear infinite;margin-right:6px;vertical-align:middle}
+        .qrcode-countdown{font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:5px}
+        .btn-refresh{display:none}
+        .btn-refresh.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @media(max-width:600px){.main-title{font-size:1.4rem}.role-cards{flex-direction:column}.stats-row{flex-direction:column}.chart-container{height:240px}}
+    </style>
+</head>
+<body>
+    <div class="role-bar" id="roleBar" style="display:none">
+        <span class="role-badge" id="currentRoleBadge"></span>
+        <button class="role-switch-btn" onclick="switchRole()">切换角色</button>
+    </div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h3 id="modalTitle">提示</h3>
+            <p id="modalMessage">消息内容</p>
+            <div style="display:flex;gap:10px;justify-content:center">
+                <button class="btn btn-primary" onclick="closeModal()">确定</button>
+            </div>
+        </div>
+    </div>
+    <div class="pay-success-overlay" id="paySuccessOverlay">
+        <div class="pay-success-icon">&#9989;</div>
+        <div style="font-size:1.5rem;font-weight:700;color:#2ecc71;margin-bottom:10px" id="paySuccessTitle">支付成功</div>
+        <div style="color:rgba(255,255,255,0.7)" id="paySuccessSubtitle">正在为您生成完整报告...</div>
+    </div>
+    <div class="qrcode-overlay" id="qrcodeOverlay">
+        <div class="qrcode-box">
+            <h3>&#128254; 微信扫码支付</h3>
+            <p>请使用微信扫描下方二维码完成支付</p>
+            <div class="qrcode-image" id="qrcodeImage">
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#333;font-size:0.8rem">
+                    <span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,0.2);border-top-color:#07c160;border-radius:50%;animation:spin 1s linear infinite;margin-right:8px"></span>
+                    正在生成二维码...
+                </div>
+            </div>
+            <div class="qrcode-tips">
+                <strong>&#128161; 支付方式（三选一）：</strong><br>
+                方式一：用另一台设备的微信「扫一扫」<br>
+                方式二：长按上方二维码 → 识别图中二维码<br>
+                方式三：截图保存二维码 → 打开微信相册识别
+            </div>
+            <div class="qrcode-countdown" id="qrcodeCountdown">二维码有效期：剩余 120 秒</div>
+            <div class="qrcode-status" id="qrcodeStatus">
+                <span class="qrcode-spinner"></span>等待扫码支付...
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-secondary" style="flex:1" onclick="closeQrcode()">取消支付</button>
+                <button class="btn btn-success" style="flex:1" onclick="checkPayStatusManual()">我已支付</button>
+                <button class="btn btn-primary btn-refresh" style="flex:1" id="btnRefreshQrcode" onclick="refreshQrcode()">刷新二维码</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- ========== 角色选择 ========== -->
+        <div class="page active" id="roleSelectPage">
+            <div class="role-select-page">
+                <div class="main-title">胚胎非整倍体及中西结合融合诊疗系统</div>
+                <div class="subtitle">基于国医名家苏同生主任医师"内外同治、针药结合"学术思想</div>
+                <div class="role-cards">
+                    <div class="role-card" onclick="selectRole('patient')">
+                        <div class="role-icon">&#128100;</div>
+                        <h3>患者端</h3>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7)">填写信息，完成风险评估，获取个性化中西结合诊疗方案</p>
+                    </div>
+                    <div class="role-card" onclick="selectRole('doctor')">
+                        <div class="role-icon">&#128104;&#8205;&#9877;&#65039;</div>
+                        <h3>医生端</h3>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7)">查看患者报告，审核确认诊疗方案</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ========== 患者信息 ========== -->
+        <div class="page" id="patientInfoPage">
+            <div class="main-title" style="margin-bottom:25px;text-align:center">患者信息登记</div>
+            <div class="info-form">
+                <div class="form-group">
+                    <label class="form-label">真实姓名<span class="required">*</span></label>
+                    <input type="text" class="input-field" id="pName" placeholder="请输入您的真实姓名">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">手机号码<span class="required">*</span></label>
+                    <input type="tel" class="input-field" id="pPhone" placeholder="请输入11位手机号码" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">性别<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="radio-item active" onclick="selectRadio(this)" data-val="女">女</div>
+                        <div class="radio-item" onclick="selectRadio(this)" data-val="男">男</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">年龄<span class="required">*</span></label>
+                    <input type="number" class="input-field" id="pAge" placeholder="请输入年龄" min="18" max="60">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">就诊卡号/病历号（如有）</label>
+                    <input type="text" class="input-field" id="pCard" placeholder="选填">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">主治医生<span class="required">*</span></label>
+                    <select class="input-field" id="pDoctor">
+                        <option value="苏同生">苏同生 主任医师</option>
+                        <option value="其他">其他医生</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-block btn-large" onclick="submitPatientInfo()">提交信息并进入评估</button>
+                <p style="text-align:center;margin-top:15px;font-size:0.8rem;color:rgba(255,255,255,0.5)">您的信息仅用于生成诊疗报告，严格保密</p>
+            </div>
+        </div>
+        <!-- ========== 欢迎页 ========== -->
+        <div class="page" id="patientWelcome">
+            <div class="patient-welcome">
+                <span class="role-badge role-patient" style="margin-bottom:15px;display:inline-flex">&#128100; 患者端</span>
+                <div class="main-title">胚胎非整倍体及中西结合融合诊疗系统</div>
+                <div class="subtitle">融合现代PGT-A技术与中医体质辨识，科学评估胚胎非整倍体风险</div>
+                <div class="card" style="max-width:600px;margin:0 auto;text-align:left">
+                    <h3>&#127793; 评估内容</h3>
+                    <p>通过多维风险因子评估，结合中医体质辨识与西医风险分层，生成个性化诊疗方案。</p>
+                    <div class="feature-tags">
+                        <span class="tag">风险量化评估</span>
+                        <span class="tag">中医体质辨识</span>
+                        <span class="tag">针药结合方案</span>
+                        <span class="tag">孕前调治</span>
+                        <span class="tag">孕后保胎</span>
+                    </div>
+                </div>
+                <div class="card" style="max-width:600px;margin:15px auto;text-align:left">
+                    <h3>&#128100; 当前患者信息</h3>
+                    <p id="patientInfoDisplay" style="line-height:2"></p>
+                </div>
+                <button class="btn btn-primary btn-large pulse" onclick="startQuiz()" style="margin-top:10px">开始测试</button>
+            </div>
+        </div>
+        <!-- ========== 测试页 ========== -->
+        <div class="page" id="quizPage">
+            <div class="progress-container">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-text" id="progressText">问题 1 / 8</div>
+            </div>
+            <div class="card">
+                <div class="question-number" id="questionNumber">问题 1</div>
+                <div class="question-text" id="questionText">加载中...</div>
+                <div class="options-container" id="optionsContainer"></div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" id="prevBtn" onclick="prevQuestion()" disabled>上一题</button>
+                <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextQuestion()" disabled>下一题</button>
+            </div>
+        </div>
+        <!-- ========== 结果摘要（锁定） ========== -->
+        <div class="page" id="resultSummaryPage">
+            <div class="result-header">
+                <div class="result-badge" id="summaryBadge">风险评估完成</div>
+                <div class="result-title" id="summaryTitle">您的胚胎非整倍体风险评级</div>
+                <div class="result-subtitle" id="summarySubtitle">基于多维度风险因子的综合评估</div>
+            </div>
+            <div class="card chart-container"><canvas id="summaryChart"></canvas></div>
+            <div class="card" style="text-align:left">
+                <h3>&#128202; 风险维度概览（部分展示）</h3>
+                <div id="summaryDetails"></div>
+            </div>
+            <div class="lock-overlay">
+                <div class="lock-icon">&#128274;</div>
+                <h3>完整报告已锁定</h3>
+                <p>支付诊费后即可解锁完整版中西结合融合诊疗方案<br>包含苏同生主任医师针药结合详细处方、穴位方案及孕后保胎指导</p>
+                <div class="price-tag" id="lockPriceTag">&#165; 68.00</div>
+                <div class="price-note">诊费支付后永久查看 &#183; 医生审核后生效</div>
+                <button class="btn btn-warning btn-large" onclick="goToPayment()" style="width:80%">立即支付解锁</button>
+            </div>
+            <div class="preview-hint">
+                <strong>预览提示：</strong>上方雷达图展示了您的多维度风险评估结果。完整报告包含：&#9312;详细风险概率分解 &#9313;苏同生主任个性化处方 &#9314;线粒体营养支持方案 &#9315;环境毒素排查清单 &#9316;孕后保胎监测体系 &#9317;生活方式调摄指南。
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="restartQuiz()">重新测试</button>
+                <button class="action-btn btn-primary" onclick="goToPayment()">支付解锁</button>
+            </div>
+        </div>
+        <!-- ========== 支付页 ========== -->
+        <div class="page" id="paymentPage">
+            <div class="payment-box">
+                <h2>&#128272; 支付诊费解锁报告</h2>
+                <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin-top:8px">胚胎非整倍体风险评估及中西结合融合诊疗方案</p>
+                <div id="envDetectTag" style="margin-top:12px"></div>
+                <div class="payment-amount" id="paymentAmountDisplay">&#165;68.00</div>
+                <div class="payment-info">
+                    <p><strong>患者：</strong><span id="payPatientName">--</span></p>
+                    <p><strong>手机：</strong><span id="payPatientPhone">--</span></p>
+                    <p><strong>项目：</strong>胚胎非整倍体风险评估报告</p>
+                    <p><strong>主治：</strong>苏同生 主任医师</p>
+                </div>
+                <div class="config-info">
+                    <h4>&#128274; 安全支付说明（微信Native扫码支付）</h4>
+                    <p>&#8226; 支付模式：微信Native扫码支付</p>
+                    <p>&#8226; 无需关注公众号，用微信扫码即可完成支付</p>
+                    <p>&#8226; 支付由微信支付官方处理，安全有保障</p>
+                </div>
+                <div id="wxConfigStatus" style="margin:10px 0"></div>
+                <div class="payment-methods">
+                    <button class="method-btn active" id="wxBtn" onclick="selectPayMethod('wx')">
+                        <span>&#128172;</span> 微信扫码支付
+                    </button>
+                    <button class="method-btn" id="aliBtn" onclick="selectPayMethod('ali')">
+                        <span>&#128311;</span> 支付宝
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-block btn-large" style="background:linear-gradient(135deg,#07c160,#05a050);margin-top:15px" id="payActionBtn" onclick="initiateRealPayment()">微信扫码支付 &#165;68.00</button>
+                <div style="margin-top:15px;font-size:0.75rem;color:rgba(255,255,255,0.4);text-align:center">由微信支付官方处理，安全有保障</div>
+            </div>
+        </div>
+        <!-- ========== 完整报告 ========== -->
+        <div class="page" id="fullReportPage">
+            <div class="result-header">
+                <div class="paid-badge">&#10003; 诊费已支付</div>
+                <div id="patientAuditStatus"></div>
+                <div class="result-badge" id="riskBadge"></div>
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-subtitle" id="resultSubtitle"></div>
+            </div>
+            <div class="card chart-container"><canvas id="riskChart"></canvas></div>
+            <div class="card" style="text-align:left">
+                <h3>&#128202; 非整倍体概率详情</h3>
+                <div id="detailsList"></div>
+            </div>
+            <div class="card" style="text-align:left">
+                <h3>&#128137; 个性化中西结合融合诊疗方案</h3>
+                <div id="treatmentContent"></div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="restartQuiz()">重新测试</button>
+                <button class="action-btn btn-success" onclick="window.print()">导出PDF报告</button>
+            </div>
+        </div>
+        <!-- ========== 医生端 ========== -->
+        <div class="page" id="doctorLoginPage">
+            <div class="doctor-login-page">
+                <div class="login-box">
+                    <h2 style="color:#a8d8ff;margin-bottom:25px">医生端登录</h2>
+                    <input type="text" class="input-field" id="doctorAccount" placeholder="请输入医生账号" value="sutongsheng" style="margin-bottom:15px">
+                    <input type="password" class="input-field" id="doctorPassword" placeholder="请输入密码" value="123456">
+                    <button class="btn btn-primary btn-block" onclick="doctorLogin()" style="margin-top:20px">登录</button>
+                    <p class="login-hint">演示账号：sutongsheng / 密码：123456</p>
+                </div>
+            </div>
+        </div>
+        <div class="page" id="doctorDashboard">
+            <div class="doctor-dashboard">
+                <div class="dashboard-header">
+                    <h2>患者报告管理</h2>
+                    <button class="role-switch-btn" onclick="refreshPatientList()">&#128260; 刷新</button>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">总评估数</div></div>
+                    <div class="stat-card"><div class="stat-number" id="statPaid">0</div><div class="stat-label">已付费</div></div>
+                    <div class="stat-card"><div class="stat-number" id="statAudited">0</div><div class="stat-label">已审核</div></div>
+                    <div class="stat-card"><div class="stat-number" id="statHighRisk">0</div><div class="stat-label">高风险</div></div>
+                </div>
+                <div class="patient-list" id="patientList"></div>
+            </div>
+        </div>
+        <div class="page" id="doctorReportView">
+            <div style="margin-bottom:15px">
+                <button class="role-switch-btn" onclick="backToDashboard()">&#8592; 返回列表</button>
+            </div>
+            <div class="audit-panel">
+                <h3>&#128221; 医生审核确认</h3>
+                <div id="auditCurrentStatus" style="margin-bottom:15px;font-size:0.9rem"></div>
+                <textarea class="audit-textarea" id="auditComment" placeholder="请输入审核意见、调整建议或医嘱备注..."></textarea>
+                <div class="audit-actions">
+                    <button class="btn btn-success" onclick="submitAudit('approved')">&#10003; 审核通过</button>
+                    <button class="btn btn-danger" onclick="submitAudit('rejected')">&#10007; 审核不通过</button>
+                    <button class="btn btn-secondary" onclick="submitAudit('pending')">&#9208; 标记待复核</button>
+                </div>
+            </div>
+            <div id="doctorReportContent"></div>
+        </div>
+    </div>
+<script>
+// ========================================================================
+// 【唯一需要修改的配置】把 apiServer 改成您的 Cloudflare Workers 地址
+// ========================================================================
+var PAY_CONFIG={
+    mchId:'1498801572',
+    amount:6800,
+    amountYuan:'68.00',
+    description:'胚胎非整倍体风险评估报告-苏同生主任',
+    timeoutSeconds:120,
+    apiServer:'',
+    demoMode:true  // 演示模式：无需后端即可体验完整流程
+};
+function isPayConfigValid(){return PAY_CONFIG.demoMode || (PAY_CONFIG.apiServer&&PAY_CONFIG.apiServer.startsWith('https://'))}
+
+var browserEnv={isWechat:false,isAlipay:false,isMobile:false,envName:'browser',envLabel:'浏览器',envClass:'env-browser'};
+function detectBrowserEnv(){var ua=navigator.userAgent.toLowerCase();browserEnv.isWechat=/micromessenger/.test(ua);browserEnv.isAlipay=/alipayclient/.test(ua);browserEnv.isMobile=/mobile|android|iphone|ipad/.test(ua);if(browserEnv.isWechat){browserEnv.envName='wechat';browserEnv.envLabel='微信';browserEnv.envClass='env-wx'}}
+
+var questions=[{id:1,question:"您的年龄是？（女性年龄是胚胎非整倍体最核心的风险因素）",options:[{text:"30岁以下",value:"A",score:5},{text:"30-34岁",value:"B",score:15},{text:"35-39岁",value:"C",score:35},{text:"40岁及以上",value:"D",score:55}],category:"年龄因素",weight:2.5},{id:2,question:"您的BMI（体重指数）范围是？",options:[{text:"正常（18.5-23.9）",value:"A",score:5},{text:"超重（24-27.9）",value:"B",score:15},{text:"肥胖（28-34.9）",value:"C",score:30},{text:"重度肥胖（≥35）",value:"D",score:45}],category:"代谢因素",weight:1.2},{id:3,question:"您的维生素D水平如何？",options:[{text:"充足（25(OH)D ≥30ng/ml）",value:"A",score:5},{text:"不足（20-29ng/ml）",value:"B",score:20},{text:"缺乏（<20ng/ml）或未检测",value:"C",score:35}],category:"营养因素",weight:1},{id:4,question:"您既往的流产/胚停经历？",options:[{text:"无",value:"A",score:0},{text:"1次",value:"B",score:15},{text:"2次",value:"C",score:30},{text:"3次及以上",value:"D",score:50}],category:"病史因素",weight:1.5},{id:5,question:"您是否有过胚胎染色体异常（非整倍体）的病史？",options:[{text:"无/不清楚",value:"A",score:0},{text:"曾有1次",value:"B",score:25},{text:"曾有2次及以上",value:"C",score:45}],category:"遗传因素",weight:1.8},{id:6,question:"您目前的生活方式状态？",options:[{text:"作息规律，不吸烟不饮酒，适度运动",value:"A",score:5},{text:"偶尔熬夜，少量饮酒",value:"B",score:20},{text:"经常熬夜，吸烟或被动吸烟",value:"C",score:35},{text:"长期熬夜，吸烟，久坐不动",value:"D",score:50}],category:"生活方式",weight:1},{id:7,question:"根据中医体质辨识，您最符合哪种体质？",options:[{text:"平和质（身体健康，精力充沛）",value:"A",score:5},{text:"肾虚质（腰膝酸软，畏寒或潮热）",value:"B",score:25},{text:"痰湿质（形体肥胖，舌苔厚腻）",value:"C",score:30},{text:"血瘀质（面色晦暗，痛经有血块）",value:"D",score:35},{text:"不确定/未辨识",value:"E",score:20}],category:"中医体质",weight:1.2},{id:8,question:"您本次辅助生殖周期促性腺激素（Gn）总用量？",options:[{text:"低剂量（<1500IU）",value:"A",score:5},{text:"中等剂量（1500-3000IU）",value:"B",score:15},{text:"高剂量（>3000IU）",value:"C",score:30},{text:"自然周期/未进行促排",value:"D",score:10}],category:"促排因素",weight:0.8}];
+
+var currentRole='',patientInfo={},currentQuestion=0,answers={},currentPatientId=null,currentPayMethod='wx',chartInstance=null,summaryChartInstance=null,payState='select',currentOrderNo=null,currentCodeUrl=null,pollTimer=null,countdownTimer=null,countdownSeconds=120;
+
+var safeStorage={get:function(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},remove:function(k){try{localStorage.removeItem(k)}catch(e){}},getStr:function(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}}};
+
+function hideAll(){var p=document.querySelectorAll('.page');for(var i=0;i<p.length;i++){p[i].classList.remove('active')}}
+function showPage(id){hideAll();var el=document.getElementById(id);if(el){el.classList.add('active');el.offsetHeight}}
+function showRoleSelect(){showPage('roleSelectPage');document.getElementById('roleBar').style.display='none'}
+function selectRole(role){currentRole=role;safeStorage.set('currentRole',role);if(role==='patient'){if(patientInfo&&patientInfo.name)showPatientWelcome();else showPatientInfoPage()}else{showDoctorLogin()}}
+function switchRole(){currentRole='';patientInfo={};safeStorage.remove('currentRole');safeStorage.remove('currentPatientInfo');showRoleSelect()}
+function showBar(role){document.getElementById('roleBar').style.display='flex';var b=document.getElementById('currentRoleBadge');if(role==='patient'){b.textContent='患者端';b.className='role-badge role-patient'}else{b.textContent='医生端';b.className='role-badge role-doctor'}}
+function selectRadio(el){var items=el.parentElement.querySelectorAll('.radio-item');for(var i=0;i<items.length;i++){items[i].classList.remove('active')}el.classList.add('active')}
+function showPatientInfoPage(){showPage('patientInfoPage');showBar('patient')}
+function submitPatientInfo(){var name=document.getElementById('pName').value.trim();var phone=document.getElementById('pPhone').value.trim();var genderEl=document.querySelector('.radio-item.active');var gender=genderEl?genderEl.getAttribute('data-val'):'女';var age=document.getElementById('pAge').value.trim();var card=document.getElementById('pCard').value.trim();var doctor=document.getElementById('pDoctor').value;if(!name){showModal('提示','请输入真实姓名');return}if(!/^1[3-9]\d{9}$/.test(phone)){showModal('提示','请输入正确的11位手机号码');return}if(!age||age<18||age>60){showModal('提示','请输入有效的年龄（18-60岁）');return}patientInfo={name:name,phone:phone,gender:gender,age:age,card:card,doctor:doctor,timestamp:Date.now()};safeStorage.set('currentPatientInfo',patientInfo);showPatientWelcome()}
+function showPatientWelcome(){showPage('patientWelcome');showBar('patient');var info=patientInfo;var phoneMask=info.phone?info.phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'';document.getElementById('patientInfoDisplay').innerHTML='<strong>姓名：</strong>'+info.name+' <strong>性别：</strong>'+info.gender+' <strong>年龄：</strong>'+info.age+'岁<br><strong>手机：</strong>'+phoneMask+' <strong>主治：</strong>'+info.doctor+'医生<br><span style="color:#a8d8ff">信息已登记，请点击下方按钮开始评估</span>'}
+
+function startQuiz(){showPage('quizPage');currentQuestion=0;answers={};renderQuestion()}
+function renderQuestion(){var q=questions[currentQuestion];document.getElementById('questionNumber').textContent='问题 '+q.id;document.getElementById('questionText').textContent=q.question;var c=document.getElementById('optionsContainer');c.innerHTML='';for(var i=0;i<q.options.length;i++){var o=q.options[i];var b=document.createElement('button');b.className='option-btn';if(answers[q.id]===o.value)b.classList.add('selected');b.innerHTML='<span class="option-letter">'+String.fromCharCode(65+i)+'</span><span>'+o.text+'</span>';b.onclick=(function(qid,v){return function(){answers[qid]=v;renderQuestion()}})(q.id,o.value);c.appendChild(b)}var p=((currentQuestion+1)/questions.length)*100;document.getElementById('progressFill').style.width=p+'%';document.getElementById('progressText').textContent='问题 '+(currentQuestion+1)+' / '+questions.length;document.getElementById('prevBtn').disabled=currentQuestion===0;document.getElementById('nextBtn').disabled=!answers[q.id];document.getElementById('nextBtn').textContent=currentQuestion===questions.length-1?'查看结果':'下一题'}
+function nextQuestion(){if(currentQuestion<questions.length-1){currentQuestion++;renderQuestion()}else{showSummary()}}
+function prevQuestion(){if(currentQuestion>0){currentQuestion--;renderQuestion()}}
+
+function showSummary(){showPage('resultSummaryPage');showBar('patient');var r=calculateRisk();document.getElementById('summaryBadge').textContent=r.riskLevel;document.getElementById('summaryBadge').className='result-badge '+r.riskClass;document.getElementById('summaryTitle').textContent=patientInfo.name+' — 胚胎非整倍体风险：'+r.riskPercent+'%';document.getElementById('summarySubtitle').textContent=r.riskText;if(summaryChartInstance&&typeof summaryChartInstance.destroy==='function')summaryChartInstance.destroy();var ctx=document.getElementById('summaryChart').getContext('2d');summaryChartInstance=new Chart(ctx,{type:'radar',data:{labels:Object.keys(r.dimensions),datasets:[{data:Object.values(r.dimensions),backgroundColor:'rgba(0,198,255,0.2)',borderColor:'rgba(0,198,255,0.8)',pointBackgroundColor:'#00c6ff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:100,ticks:{color:'rgba(255,255,255,0.6)',backdropColor:'transparent'},grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'rgba(255,255,255,0.9)',font:{size:11}}}},plugins:{legend:{display:false}}}});var colors={'年龄因素':'#e74c3c','代谢因素':'#e67e22','营养因素':'#f1c40f','病史因素':'#e74c3c','遗传因素':'#c0392b','生活方式':'#f39c12','中医体质':'#9b59b6','促排因素':'#3498db'};var h='';var d=Object.entries(r.dimensions);for(var i=0;i<Math.min(4,d.length);i++){var cat=d[i][0],v=d[i][1];var c=colors[cat]||'#00c6ff';h+='<div class="detail-item"><span class="detail-label">'+cat+'</span><div style="display:flex;align-items:center"><div class="detail-bar"><div class="detail-bar-fill" style="width:'+v+'%;background:'+c+'"></div></div><span class="detail-value" style="margin-left:8px;color:'+c+'">'+v+'%</span></div></div>'}h+='<div class="detail-item" style="opacity:0.5"><span class="detail-label">更多维度...</span><span style="color:#e74c3c">解锁后查看</span></div>';document.getElementById('summaryDetails').innerHTML=h;saveRecord(r,false,'pending')}
+
+function calculateRisk(){var ts=0,ms=0;var cs={},cm={};for(var i=0;i<questions.length;i++){var q=questions[i];var s=null;for(var j=0;j<q.options.length;j++){if(q.options[j].value===answers[q.id]){s=q.options[j];break}}if(s){var mo=0;for(var k=0;k<q.options.length;k++){if(q.options[k].score>mo)mo=q.options[k].score}var ws=s.score*q.weight;ts+=ws;ms+=(mo*q.weight);if(!cs[q.category]){cs[q.category]=0;cm[q.category]=0}cs[q.category]+=ws;cm[q.category]+=(mo*q.weight)}}var rp=Math.round((ts/ms)*100);var rl,rc,rt;if(rp<25){rl='低风险';rc='badge-low';rt='您的胚胎非整倍体风险较低，建议常规备孕管理'}else if(rp<50){rl='中等风险';rc='badge-moderate';rt='建议进行孕前3个月系统调理，优化卵母细胞质量'}else if(rp<75){rl='高风险';rc='badge-high';rt='强烈建议进行PGT-A筛查，并实施系统中西结合干预'}else{rl='极高风险';rc='badge-very-high';rt='必须进行PGT-A检测，配合强化针药结合孕前调治'}var dm={};for(var cat in cs){dm[cat]=Math.round((cs[cat]/cm[cat])*100)}return{riskPercent:rp,riskLevel:rl,riskClass:rc,riskText:rt,dimensions:dm}}
+
+// ============ 支付功能 ============
+function goToPayment(){payState='select';currentOrderNo=null;currentCodeUrl=null;showPage('paymentPage');showBar('patient');document.getElementById('payPatientName').textContent=patientInfo.name||'--';var pm=patientInfo.phone?patientInfo.phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'--';document.getElementById('payPatientPhone').textContent=pm;document.getElementById('paymentAmountDisplay').textContent='¥'+PAY_CONFIG.amountYuan;document.getElementById('payActionBtn').textContent='微信扫码支付 ¥'+PAY_CONFIG.amountYuan;var e='<span class="env-tag '+browserEnv.envClass+'">当前环境：'+browserEnv.envLabel+'</span>';document.getElementById('envDetectTag').innerHTML=e;updateConfigStatus()}
+function updateConfigStatus(){var s=document.getElementById('wxConfigStatus');if(!s)return;if(PAY_CONFIG.demoMode){s.innerHTML='<div style="background:rgba(0,198,255,0.15);border:1px solid rgba(0,198,255,0.4);border-radius:10px;padding:10px;font-size:0.8rem;color:#00c6ff;text-align:left">演示模式<br>无需配置，可直接体验完整功能</div>';return}if(!isPayConfigValid()){s.innerHTML='<div style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);border-radius:10px;padding:10px;font-size:0.8rem;color:#e74c3c;text-align:left">API地址未配置<br>请在代码中修改 PAY_CONFIG.apiServer 为您的后端地址</div>';return}s.innerHTML='<div style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:10px;padding:10px;font-size:0.8rem;color:#2ecc71;text-align:left">配置检查通过</div>'}
+function selectPayMethod(m){currentPayMethod=m;document.getElementById('wxBtn').classList.toggle('active',m==='wx');document.getElementById('aliBtn').classList.toggle('active',m==='ali');var b=document.getElementById('payActionBtn');if(m==='wx'){b.textContent='微信扫码支付 ¥'+PAY_CONFIG.amountYuan;b.style.background='linear-gradient(135deg,#07c160,#05a050)'}else{b.textContent='支付宝支付 ¥'+PAY_CONFIG.amountYuan;b.style.background='linear-gradient(135deg,#1677ff,#005ce6)'}}
+
+function initiateRealPayment(){var r=getLatestRecord();if(!r){showModal('提示','未找到评估记录');return}if(currentPayMethod==='ali'){showModal('提示','支付宝支付即将上线');return}if(PAY_CONFIG.demoMode){showModal('演示模式','系统处于演示模式，无需真实支付，点击确定查看完整报告');setTimeout(function(){closeModal();handlePaySuccess(getLatestRecord().id,'demo')},1500);return}if(!isPayConfigValid()){showModal('配置未完成','请在代码中设置 PAY_CONFIG.apiServer\n\n教程见部署指南');return}payState='pay';handleNativePay()}
+
+function handleNativePay(){showModal('支付确认','正在创建支付订单...');fetch(PAY_CONFIG.apiServer+'/api/wechat/native',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:PAY_CONFIG.description,amount:PAY_CONFIG.amount,notifyUrl:window.location.origin+'/wechat-notify'})}).then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json()}).then(function(data){closeModal();if(data.code!==0)throw new Error(data.message);currentOrderNo=data.outTradeNo;showQrcode(data.codeUrl,data.outTradeNo)}).catch(function(err){closeModal();console.error(err);showModal('支付失败','无法连接支付服务：'+err.message+'\n\n请检查：\n1. apiServer地址是否正确\n2. 后端服务是否正常运行')})}
+
+function showQrcode(codeUrl,orderNo){var imgDiv=document.getElementById('qrcodeImage');var url='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(codeUrl);imgDiv.innerHTML='<img src="'+url+'" alt="支付二维码" style="width:100%;height:100%;object-fit:contain">';document.getElementById('qrcodeStatus').innerHTML='<span class="qrcode-spinner"></span>等待扫码支付...';document.getElementById('qrcodeStatus').className='qrcode-status';document.getElementById('btnRefreshQrcode').classList.remove('active');document.getElementById('qrcodeOverlay').classList.add('active');countdownSeconds=PAY_CONFIG.timeoutSeconds;startCountdown();startPoll(orderNo)}
+function closeQrcode(){document.getElementById('qrcodeOverlay').classList.remove('active');stopPoll();stopCountdown();currentCodeUrl=null}
+function refreshQrcode(){closeQrcode();setTimeout(handleNativePay,300)}
+function startCountdown(){stopCountdown();var div=document.getElementById('qrcodeCountdown');function tick(){countdownSeconds--;if(countdownSeconds<=0){div.textContent='二维码已过期';document.getElementById('qrcodeStatus').innerHTML='二维码已过期，请刷新';document.getElementById('qrcodeStatus').className='qrcode-status error';document.getElementById('btnRefreshQrcode').classList.add('active');stopPoll();return}div.textContent='二维码有效期：剩余 '+countdownSeconds+' 秒';countdownTimer=setTimeout(tick,1000)}tick()}
+function stopCountdown(){if(countdownTimer){clearTimeout(countdownTimer);countdownTimer=null}}
+function startPoll(orderNo){stopPoll();var a=0;function poll(){if(a>=90){document.getElementById('qrcodeStatus').innerHTML='支付超时';document.getElementById('qrcodeStatus').className='qrcode-status error';document.getElementById('btnRefreshQrcode').classList.add('active');stopPoll();return}a++;fetch(PAY_CONFIG.apiServer+'/api/wechat/query?outTradeNo='+encodeURIComponent(orderNo)).then(function(r){return r.json()}).then(function(d){if(d.paid||d.status==='SUCCESS'){stopPoll();stopCountdown();closeQrcode();handlePaySuccess(getLatestRecord().id,'wx_native')}else if(d.status==='CLOSED'){document.getElementById('qrcodeStatus').innerHTML='订单已关闭';document.getElementById('qrcodeStatus').className='qrcode-status error';stopPoll()}else{pollTimer=setTimeout(poll,2000)}}).catch(function(){pollTimer=setTimeout(poll,3000)})}poll()}
+function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=null}}
+function checkPayStatusManual(){if(!currentOrderNo)return;document.getElementById('qrcodeStatus').innerHTML='<span class="qrcode-spinner"></span>查询中...';fetch(PAY_CONFIG.apiServer+'/api/wechat/query?outTradeNo='+encodeURIComponent(currentOrderNo)).then(function(r){return r.json()}).then(function(d){if(d.paid||d.status==='SUCCESS'){stopPoll();stopCountdown();closeQrcode();handlePaySuccess(getLatestRecord().id,'wx_native')}else{document.getElementById('qrcodeStatus').innerHTML='<span class="qrcode-spinner"></span>等待扫码...'}}).catch(function(){document.getElementById('qrcodeStatus').innerHTML='查询失败，请重试'})}
+
+function handlePaySuccess(pid,ch){var rs=getAllRecords();for(var i=0;i<rs.length;i++){if(rs[i].id===pid){rs[i].paid=true;rs[i].payChannel=ch;rs[i].payTime=Date.now()}}safeStorage.set('patientRecords',rs);document.getElementById('paySuccessTitle').textContent='支付成功';document.getElementById('paySuccessSubtitle').textContent='正在为您生成完整报告...';document.getElementById('paySuccessOverlay').classList.add('active');setTimeout(function(){document.getElementById('paySuccessOverlay').classList.remove('active');showFullReport()},2000)}
+
+// ============ 完整报告 ============
+function showFullReport(){showPage('fullReportPage');showBar('patient');var r=calculateRisk();var rec=getLatestRecord();var ad=document.getElementById('patientAuditStatus');if(rec&&rec.auditStatus){var ac=rec.auditStatus==='approved'?'audit-approved':'audit-pending';var at=rec.auditStatus==='approved'?'医生已审核通过':'等待医生审核';ad.innerHTML='<span class="paid-badge '+ac+'">'+at+'</span>'}else{ad.innerHTML='<span class="paid-badge audit-pending">等待医生审核</span>'}document.getElementById('riskBadge').textContent=r.riskLevel;document.getElementById('riskBadge').className='result-badge '+r.riskClass;document.getElementById('resultTitle').textContent=patientInfo.name+' — 胚胎非整倍体风险：'+r.riskPercent+'%';document.getElementById('resultSubtitle').textContent=r.riskText;if(chartInstance&&typeof chartInstance.destroy==='function')chartInstance.destroy();var ctx=document.getElementById('riskChart').getContext('2d');chartInstance=new Chart(ctx,{type:'radar',data:{labels:Object.keys(r.dimensions),datasets:[{label:'风险维度评估',data:Object.values(r.dimensions),backgroundColor:'rgba(0,198,255,0.2)',borderColor:'rgba(0,198,255,0.8)',pointBackgroundColor:'#00c6ff',pointBorderColor:'#fff',borderWidth:2,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:20,color:'rgba(255,255,255,0.6)',backdropColor:'transparent'},grid:{color:'rgba(255,255,255,0.1)'},angleLines:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'rgba(255,255,255,0.9)',font:{size:12}}}},plugins:{legend:{display:false}}}});document.getElementById('detailsList').innerHTML=generateDetailsHTML(r);document.getElementById('treatmentContent').innerHTML=generateTreatmentHTML(r)}
+function restartQuiz(){showPage('patientWelcome');showBar('patient');currentQuestion=0;answers={};if(chartInstance&&typeof chartInstance.destroy==='function'){chartInstance.destroy();chartInstance=null}}
+
+// ============ 医生端 ============
+function showDoctorLogin(){showPage('doctorLoginPage');showBar('doctor')}
+function doctorLogin(){var acc=document.getElementById('doctorAccount').value;var pwd=document.getElementById('doctorPassword').value;if(acc==='sutongsheng'&&pwd==='123456'){safeStorage.set('doctorLoggedIn','true');showDoctorDashboard()}else{showModal('登录失败','账号或密码错误')}}
+function showDoctorDashboard(){showPage('doctorDashboard');showBar('doctor');refreshPatientList()}
+function refreshPatientList(){var rs=getAllRecords();var list=document.getElementById('patientList');document.getElementById('statTotal').textContent=rs.length;document.getElementById('statPaid').textContent=rs.filter(function(r){return r.paid}).length;document.getElementById('statAudited').textContent=rs.filter(function(r){return r.auditStatus==='approved'}).length;document.getElementById('statHighRisk').textContent=rs.filter(function(r){return r.riskPercent>=50}).length;if(rs.length===0){list.innerHTML='<div style="text-align:center;color:rgba(255,255,255,0.5);padding:40px">暂无患者评估记录</div>';return}var h='';for(var i=rs.length-1;i>=0;i--){var r=rs[i];var rc=r.riskPercent<25?'risk-low':r.riskPercent<50?'risk-moderate':r.riskPercent<75?'risk-high':'risk-very-high';var rt=r.riskPercent<25?'低风险':r.riskPercent<50?'中等风险':r.riskPercent<75?'高风险':'极高风险';var pc=r.paid?'paid':'unpaid';var pt=r.paid?'已付费':'未付费';var d=new Date(r.timestamp).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});var n=r.patientInfo?r.patientInfo.name:'患者';var ph=r.patientInfo?r.patientInfo.phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'';h+='<div class="patient-item" data-pid="'+r.id+'" onclick="viewDoctorReport(\''+r.id+'\')"><div class="patient-info"><h4>'+n+' <span class="pay-status '+pc+'">'+pt+'</span></h4><span>'+d+' · 风险'+r.riskPercent+'% · '+ph+'</span></div><div class="patient-risk '+rc+'">'+rt+'</div></div>'}list.innerHTML=h}
+function viewDoctorReport(pid){var rs=getAllRecords();var rec=null;for(var i=0;i<rs.length;i++){if(rs[i].id===pid){rec=rs[i];break}}if(!rec)return;currentPatientId=pid;showPage('doctorReportView');showBar('doctor');var sd=document.getElementById('auditCurrentStatus');if(rec.auditStatus==='approved'){sd.innerHTML='<span style="color:#2ecc71;font-weight:600">已审核通过</span>'}else if(rec.auditStatus==='rejected'){sd.innerHTML='<span style="color:#e74c3c;font-weight:600">已驳回</span>'}else{sd.innerHTML='<span style="color:#f1c40f;font-weight:600">待审核</span>'}document.getElementById('auditComment').value=rec.auditComment||'';answers=rec.answers;var result=calculateRisk();var pi=rec.patientInfo||{};var pm=pi.phone?pi.phone.replace(/(\d{3})\d{4}(\d{4})/,'$1****$2'):'';var html='<div class="result-header"><div class="result-badge '+result.riskClass+'">'+result.riskLevel+'</div><div class="result-title">'+(pi.name||'患者')+' — 风险：'+result.riskPercent+'%</div><div class="result-subtitle">'+result.riskText+'</div><div style="margin-top:10px;font-size:0.85rem;color:rgba(255,255,255,0.7)">'+(pi.gender||'')+' '+(pi.age?pi.age+'岁':'')+' · '+pm+'</div></div><div class="card chart-container" style="height:300px"><canvas id="doctorRiskChart"></canvas></div><div class="card" style="text-align:left"><h3>非整倍体概率详情</h3>'+generateDetailsHTML(result)+'</div><div class="card" style="text-align:left"><h3>个性化中西结合融合诊疗方案</h3>'+generateTreatmentHTML(result)+'</div>';document.getElementById('doctorReportContent').innerHTML=html;setTimeout(function(){var ctx=document.getElementById('doctorRiskChart').getContext('2d');new Chart(ctx,{type:'radar',data:{labels:Object.keys(result.dimensions),datasets:[{data:Object.values(result.dimensions),backgroundColor:'rgba(0,198,255,0.2)',borderColor:'rgba(0,198,255,0.8)',pointBackgroundColor:'#00c6ff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:100,ticks:{color:'rgba(255,255,255,0.6)',backdropColor:'transparent'},grid:{color:'rgba(255,255,255,0.1)'},pointLabels:{color:'rgba(255,255,255,0.9)',font:{size:12}}}},plugins:{legend:{display:false}}}})},100)}
+function submitAudit(status){var comment=document.getElementById('auditComment').value.trim();var rs=getAllRecords();var rec=null;for(var i=0;i<rs.length;i++){if(rs[i].id===currentPatientId){rec=rs[i];break}}if(!rec)return;rec.auditStatus=status;rec.auditComment=comment;rec.auditTime=Date.now();rec.auditDoctor='苏同生';safeStorage.set('patientRecords',rs);var st=status==='approved'?'审核通过':status==='rejected'?'审核不通过':'标记待复核';showModal('审核完成','已将该患者报告标记为「'+st+'」');viewDoctorReport(currentPatientId);refreshPatientList()}
+function backToDashboard(){showDoctorDashboard()}
+
+// ============ HTML生成器 ============
+function generateDetailsHTML(result){var colors={'年龄因素':'#e74c3c','代谢因素':'#e67e22','营养因素':'#f1c40f','病史因素':'#e74c3c','遗传因素':'#c0392b','生活方式':'#f39c12','中医体质':'#9b59b6','促排因素':'#3498db'};var html='';for(var cat in result.dimensions){var val=result.dimensions[cat];var c=colors[cat]||'#00c6ff';html+='<div class="detail-item"><span class="detail-label">'+cat+'</span><div style="display:flex;align-items:center"><div class="detail-bar"><div class="detail-bar-fill" style="width:'+val+'%;background:'+c+'"></div></div><span class="detail-value" style="margin-left:10px;color:'+c+'">'+val+'%</span></div></div>'}html+='<div class="detail-item" style="margin-top:10px;padding-top:15px;border-top:2px solid rgba(255,255,255,0.2)"><span class="detail-label" style="font-weight:600;font-size:1rem">综合风险指数</span><span class="detail-value" style="font-size:1.1rem;color:#00c6ff">'+result.riskPercent+'%</span></div>';return html}
+function generateTreatmentHTML(result){var risk=result.riskPercent;var html='<div class="highlight-box"><p><strong>苏同生主任医师"内外同治、针药结合"核心方案</strong></p><p style="margin-top:8px">陕西省名中医、一级主任医师、陕西电针疗法流派传承人。主持国家科技部多项科研项目，获专利8项，国家及省市级科技进步奖13项。</p></div><div class="treatment-card"><h4>孕前调治方案（建议3-6个月）</h4><p><strong>内服方药（辨证论治）：</strong></p><ul><li><strong>肾虚型：</strong>左归丸/毓麟珠加减。菟丝子20g、枸杞子15g、熟地15g、山萸肉12g、杜仲12g、山药15g、当归12g、白芍12g</li><li><strong>痰湿型：</strong>苍附导痰丸合四君子汤加减。苍术12g、香附10g、陈皮10g、半夏9g、茯苓15g、白术15g、黄芪20g</li><li><strong>血瘀型：</strong>少腹逐瘀汤加减。小茴香6g、干姜6g、延胡索12g、当归15g、川芎10g、赤芍12g、蒲黄10g、五灵脂10g</li></ul><p style="margin-top:10px"><strong>针灸外治（电针疗法）：</strong></p><ul><li><strong>主穴：</strong>中脘、气海、关元、血海、三阴交、足三里、子宫穴</li><li><strong>配穴：</strong>肾虚加肾俞、太溪；痰湿加丰隆、阴陵泉；血瘀加膈俞、合谷</li><li><strong>电针参数：</strong>疏密波2-100Hz交替，每次20-30分钟，每周3次</li></ul></div><div class="treatment-card"><h4>线粒体功能优化（"优种子"策略）</h4><ul><li><strong>辅酶Q10：</strong>200-300mg/日（泛醇形式更佳）</li><li><strong>DHEA：</strong>25mg tid（需医生指导）</li><li><strong>PQQ：</strong>10-20mg/日</li><li><strong>维生素D：</strong>2000-4000IU/日</li><li><strong>α-硫辛酸：</strong>300mg bid</li></ul></div><div class="treatment-card"><h4>环境毒素排查（"清土壤"策略）</h4><ul><li><strong>重金属筛查：</strong>血铅、血汞、血镉检测</li><li><strong>塑化剂规避：</strong>停用含BPA塑料制品</li><li><strong>化工香精排除：</strong>更换无香精洗护用品</li><li><strong>饮食净化：</strong>选择有机蔬果</li></ul></div>';if(risk>=50){html+='<div class="treatment-card"><h4>高风险专项干预</h4><ul><li><strong>PGT-A检测：</strong>所有胚胎必须筛查</li><li><strong>免疫凝血筛查：</strong>抗磷脂抗体、D-二聚体</li><li><strong>内分泌精准调控：</strong>甲功五项、AMH</li></ul></div>'}html+='<div class="treatment-card"><h4>孕后保胎方案</h4><p><strong>监测体系：</strong></p><ul><li>孕三项动态监测：β-hCG、孕酮P、雌二醇E2</li><li>凝血监测：D-二聚体、抗磷脂抗体</li><li>超声监测：孕5-6周确认孕囊</li></ul><p style="margin-top:10px"><strong>中西医协同保胎：</strong></p><ul><li><strong>西医：</strong>地屈孕酮10mg bid-tid</li><li><strong>中医：</strong>寿胎丸加减（菟丝子、桑寄生、续断、阿胶）</li></ul></div><div class="treatment-card"><h4>生活方式与情志调摄</h4><ul><li><strong>睡眠：</strong>保证22:00-2:00深睡眠</li><li><strong>运动：</strong>每周150分钟中等强度有氧运动</li><li><strong>饮食：</strong>抗氧化饮食（深色蔬菜、浆果、坚果）</li><li><strong>情志：</strong>每日冥想10-15分钟</li></ul></div>';return html}
+
+function saveRecord(result,paid,auditStatus){var records=getAllRecords();var newRecord={id:'P'+Date.now(),timestamp:Date.now(),patientInfo:JSON.parse(JSON.stringify(patientInfo)),answers:JSON.parse(JSON.stringify(answers)),riskPercent:result.riskPercent,riskLevel:result.riskLevel,riskClass:result.riskClass,dimensions:JSON.parse(JSON.stringify(result.dimensions)),paid:paid,payChannel:'',payTime:null,auditStatus:auditStatus||'pending',auditComment:'',auditTime:null,auditDoctor:''};records.push(newRecord);safeStorage.set('patientRecords',records);return newRecord.id}
+function getAllRecords(){return safeStorage.get('patientRecords',[])}
+function getLatestRecord(){var records=getAllRecords();return records.length>0?records[records.length-1]:null}
+function showModal(title,message){document.getElementById('modalTitle').textContent=title;document.getElementById('modalMessage').textContent=message;document.getElementById('modalOverlay').classList.add('active')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active')}
+
+// ============ 初始化 ============
+function init(){detectBrowserEnv();var savedRole=safeStorage.getStr('currentRole','');if(savedRole==='patient'){var info=safeStorage.get('currentPatientInfo',{});if(info&&info.name){patientInfo=info;showPatientWelcome()}else{selectRole('patient')}}else if(savedRole==='doctor'){showDoctorLogin()}else{showRoleSelect()}}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}else{init()}
+</script>
+</body>
+</html>
