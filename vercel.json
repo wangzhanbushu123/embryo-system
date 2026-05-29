@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "name": "embryo-diagnosis-system",
+  "routes": [
+    {
+      "src": "/api/wechat/native",
+      "dest": "/api/wechat.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/wechat/query",
+      "dest": "/api/wechat.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/wechat.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/wechat-notify",
+      "dest": "/api/wechat.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/index.html"
+    }
+  ],
+  "functions": {
+    "api/wechat.js": {
+      "maxDuration": 10
+    }
+  }
+}
