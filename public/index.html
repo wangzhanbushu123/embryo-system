@@ -204,5 +204,199 @@
                 <button class="btn btn-success" style="flex:1" onclick="checkPayStatusManual()">我已支付</button>
                 <button class="btn btn-primary btn-refresh" style="flex:1" id="btnRefreshQrcode" onclick="refreshQrcode()">刷新二维码</button>
             </div>
+                <div class="container">
+        <!-- ========== 角色选择 ========== -->
+        <div class="page active" id="roleSelectPage">
+            <div class="role-select-page">
+                <div class="main-title">胚胎非整倍体及中西结合融合诊疗系统</div>
+                <div class="subtitle">基于国医名家苏同生主任医师"内外同治、针药结合"学术思想</div>
+                <div class="role-cards">
+                    <div class="role-card" onclick="selectRole('patient')">
+                        <div class="role-icon">&#128100;</div>
+                        <h3>患者端</h3>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7)">填写信息，完成风险评估，获取个性化中西结合诊疗方案</p>
+                    </div>
+                    <div class="role-card" onclick="selectRole('doctor')">
+                        <div class="role-icon">&#128104;&#8205;&#9877;&#65039;</div>
+                        <h3>医生端</h3>
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7)">查看患者报告，审核确认诊疗方案</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ========== 患者信息 ========== -->
+        <div class="page" id="patientInfoPage">
+            <div class="main-title" style="margin-bottom:25px;text-align:center">患者信息登记</div>
+            <div class="info-form">
+                <div class="form-group">
+                    <label class="form-label">真实姓名<span class="required">*</span></label>
+                    <input type="text" class="input-field" id="pName" placeholder="请输入您的真实姓名">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">手机号码<span class="required">*</span></label>
+                    <input type="tel" class="input-field" id="pPhone" placeholder="请输入11位手机号码" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">性别<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="radio-item active" onclick="selectRadio(this)" data-val="女">女</div>
+                        <div class="radio-item" onclick="selectRadio(this)" data-val="男">男</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">年龄<span class="required">*</span></label>
+                    <input type="number" class="input-field" id="pAge" placeholder="请输入年龄" min="18" max="60">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">就诊卡号/病历号（如有）</label>
+                    <input type="text" class="input-field" id="pCard" placeholder="选填">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">主治医生<span class="required">*</span></label>
+                    <select class="input-field" id="pDoctor">
+                        <option value="苏同生">苏同生 主任医师</option>
+                        <option value="其他">其他医生</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-block btn-large" onclick="submitPatientInfo()">提交信息并进入评估</button>
+                <p style="text-align:center;margin-top:15px;font-size:0.8rem;color:rgba(255,255,255,0.5)">您的信息仅用于生成诊疗报告，严格保密</p>
+            </div>
+        </div>
+        <!-- ========== 欢迎页 ========== -->
+        <div class="page" id="patientWelcome">
+            <div class="patient-welcome">
+                <span class="role-badge role-patient" style="margin-bottom:15px;display:inline-flex">&#128100; 患者端</span>
+                <div class="main-title">胚胎非整倍体及中西结合融合诊疗系统</div>
+                <div class="subtitle">融合现代PGT-A技术与中医体质辨识，科学评估胚胎非整倍体风险</div>
+                <div class="card" style="max-width:600px;margin:0 auto;text-align:left">
+                    <h3>&#127793; 评估内容</h3>
+                    <p>通过多维风险因子评估，结合中医体质辨识与西医风险分层，生成个性化诊疗方案。</p>
+                    <div class="feature-tags">
+                        <span class="tag">风险量化评估</span>
+                        <span class="tag">中医体质辨识</span>
+                        <span class="tag">针药结合方案</span>
+                        <span class="tag">孕前调治</span>
+                        <span class="tag">孕后保胎</span>
+                    </div>
+                </div>
+                <div class="card" style="max-width:600px;margin:15px auto;text-align:left">
+                    <h3>&#128100; 当前患者信息</h3>
+                    <p id="patientInfoDisplay" style="line-height:2"></p>
+                </div>
+                <button class="btn btn-primary btn-large pulse" onclick="startQuiz()" style="margin-top:10px">开始测试</button>
+            </div>
+        </div>
+        <!-- ========== 测试页 ========== -->
+        <div class="page" id="quizPage">
+            <div class="progress-container">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                <div class="progress-text" id="progressText">问题 1 / 8</div>
+            </div>
+            <div class="card">
+                <div class="question-number" id="questionNumber">问题 1</div>
+                <div class="question-text" id="questionText">加载中...</div>
+                <div class="options-container" id="optionsContainer"></div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn nav-btn-prev" id="prevBtn" onclick="prevQuestion()" disabled>上一题</button>
+                <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextQuestion()" disabled>下一题</button>
+            </div>
+        </div>
+        <!-- ========== 结果摘要（锁定） ========== -->
+        <div class="page" id="resultSummaryPage">
+            <div class="result-header">
+                <div class="result-badge" id="summaryBadge">风险评估完成</div>
+                <div class="result-title" id="summaryTitle">您的胚胎非整倍体风险评级</div>
+                <div class="result-subtitle" id="summarySubtitle">基于多维度风险因子的综合评估</div>
+            </div>
+            <div class="card chart-container"><canvas id="summaryChart"></canvas></div>
+            <div class="card" style="text-align:left">
+                <h3>&#128202; 风险维度概览（部分展示）</h3>
+                <div id="summaryDetails"></div>
+            </div>
+            <div class="lock-overlay">
+                <div class="lock-icon">&#128274;</div>
+                <h3>完整报告已锁定</h3>
+                <p>支付诊费后即可解锁完整版中西结合融合诊疗方案<br>包含苏同生主任医师针药结合详细处方、穴位方案及孕后保胎指导</p>
+                <div class="price-tag" id="lockPriceTag">&#165; 68.00</div>
+                <div class="price-note">诊费支付后永久查看 &#183; 医生审核后生效</div>
+                <button class="btn btn-warning btn-large" onclick="goToPayment()" style="width:80%">立即支付解锁</button>
+            </div>
+            <div class="preview-hint">
+                <strong>预览提示：</strong>上方雷达图展示了您的多维度风险评估结果。完整报告包含：&#9312;详细风险概率分解 &#9313;苏同生主任个性化处方 &#9314;线粒体营养支持方案 &#9315;环境毒素排查清单 &#9316;孕后保胎监测体系 &#9317;生活方式调摄指南。
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="restartQuiz()">重新测试</button>
+                <button class="action-btn btn-primary" onclick="goToPayment()">支付解锁</button>
+            </div>
+        </div>
+        <!-- ========== 支付页 ========== -->
+        <div class="page" id="paymentPage">
+            <div class="payment-box">
+                <h2>&#128272; 支付诊费解锁报告</h2>
+                <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin-top:8px">胚胎非整倍体风险评估及中西结合融合诊疗方案</p>
+                <div id="envDetectTag" style="margin-top:12px"></div>
+                <div class="payment-amount" id="paymentAmountDisplay">&#165;68.00</div>
+                <div class="payment-info">
+                    <p><strong>患者：</strong><span id="payPatientName">--</span></p>
+                    <p><strong>手机：</strong><span id="payPatientPhone">--</span></p>
+                    <p><strong>项目：</strong>胚胎非整倍体风险评估报告</p>
+                    <p><strong>主治：</strong>苏同生 主任医师</p>
+                </div>
+                <div class="config-info">
+                    <h4>&#128274; 安全支付说明（微信Native扫码支付）</h4>
+                    <p>&#8226; 支付模式：微信Native扫码支付</p>
+                    <p>&#8226; 无需关注公众号，用微信扫码即可完成支付</p>
+                    <p>&#8226; 支付由微信支付官方处理，安全有保障</p>
+                </div>
+                <div id="wxConfigStatus" style="margin:10px 0"></div>
+                <div class="payment-methods">
+                    <button class="method-btn active" id="wxBtn" onclick="selectPayMethod('wx')">
+                        <span>&#128172;</span> 微信扫码支付
+                    </button>
+                    <button class="method-btn" id="aliBtn" onclick="selectPayMethod('ali')">
+                        <span>&#128311;</span> 支付宝
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-block btn-large" style="background:linear-gradient(135deg,#07c160,#05a050);margin-top:15px" id="payActionBtn" onclick="initiateRealPayment()">微信扫码支付 &#165;68.00</button>
+                <div style="margin-top:15px;font-size:0.75rem;color:rgba(255,255,255,0.4);text-align:center">由微信支付官方处理，安全有保障</div>
+            </div>
+        </div>
+        <!-- ========== 完整报告 ========== -->
+        <div class="page" id="fullReportPage">
+            <div class="result-header">
+                <div class="paid-badge">&#10003; 诊费已支付</div>
+                <div id="patientAuditStatus"></div>
+                <div class="result-badge" id="riskBadge"></div>
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-subtitle" id="resultSubtitle"></div>
+            </div>
+            <div class="card chart-container"><canvas id="riskChart"></canvas></div>
+            <div class="card" style="text-align:left">
+                <h3>&#128202; 非整倍体概率详情</h3>
+                <div id="detailsList"></div>
+            </div>
+            <div class="card" style="text-align:left">
+                <h3>&#128137; 个性化中西结合融合诊疗方案</h3>
+                <div id="treatmentContent"></div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="restartQuiz()">重新测试</button>
+                <button class="action-btn btn-success" onclick="window.print()">导出PDF报告</button>
+            </div>
+        </div>
+        <!-- ========== 医生端 ========== -->
+        <div class="page" id="doctorLoginPage">
+            <div class="doctor-login-page">
+                <div class="login-box">
+                    <h2 style="color:#a8d8ff;margin-bottom:25px">医生端登录</h2>
+                    <input type="text" class="input-field" id="doctorAccount" placeholder="请输入医生账号" value="sutongsheng" style="margin-bottom:15px">
+                    <input type="password" class="input-field" id="doctorPassword" placeholder="请输入密码" value="123456">
+                    <button class="btn btn-primary btn-block" onclick="doctorLogin()" style="margin-top:20px">登录</button>
+                    <p class="login-hint">演示账号：sutongsheng / 密码：123456</p>
+                </div>
+            </div>
+        </div>
+
         </div>
     </div>
